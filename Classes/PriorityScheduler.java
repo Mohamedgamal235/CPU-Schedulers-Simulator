@@ -1,0 +1,6 @@
+package scheduling;
+
+
+class PriorityScheduler {
+
+}
