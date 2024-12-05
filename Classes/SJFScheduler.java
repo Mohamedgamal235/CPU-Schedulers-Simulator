@@ -1,5 +1,6 @@
 package scheduling;
-
+import java.util.Scanner;
+import java.util.*;
 class SJFScheduler {
  public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
