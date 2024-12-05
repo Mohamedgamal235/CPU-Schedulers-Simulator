@@ -1,7 +1,7 @@
 package scheduling;
 
 class SJFScheduler {
- public static void main(String[] args) {
+    public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Enter number of processes: ");
@@ -16,7 +16,6 @@ class SJFScheduler {
         }
 
         Arrays.sort(processes, Comparator.comparingInt(p -> p.arrivalTime));
-
         
         int currentTime = 0;
         List<Process> completedProcesses = new ArrayList<>();
