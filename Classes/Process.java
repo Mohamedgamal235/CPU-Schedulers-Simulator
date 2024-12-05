@@ -8,6 +8,9 @@ class Process {
     private  int remainingBurstTime;
     private int waitingTime;
     private int quantum ;
+    int completionTime;
+    int turnaroundTime;
+    int id;
 
     public Process(String name, int burstTime, int arrivalTime, int priority, int quantum) {
         this.name = name;
@@ -15,5 +18,6 @@ class Process {
         this.arrivalTime = arrivalTime;
         this.priority = priority;
         this.quantum = quantum;
+        this.id=id;
     }
 }
