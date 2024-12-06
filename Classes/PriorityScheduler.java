@@ -1,63 +1,69 @@
-package Scheduler;
+package scheduling;
 
 import java.util.*;
 
 public class PriorityScheduler {
     private List<Process> processes;
-    private PriorityQueue<Process> readyQueue;
+    private PriorityQueue<Process> readyQueue = new PriorityQueue<>();
+    private List<Process> excutedprocesses = new ArrayList<>();
+    private int currentTime = 0;
 
-    public PriorityScheduler(List<Process> processes, int contextSwitchingTime) throws NullPointerException {
-        int contextSwitchTime = contextSwitchingTime;
-        if (processes == null) {
-            throw new NullPointerException("Processes list cannot be null");
-        }
-        if (contextSwitchingTime < 0) {
-            throw new IllegalArgumentException("Context switching time cannot be negative");
-        }
+    int contextSwitchingTime;
+    public PriorityScheduler(List<Process> processes, int contextSwitchingTime) {
         this.processes = processes;
-        Collections.sort(processes, Comparator.comparingInt((Process p) -> p.arrivalTime )
-                .thenComparingInt(p -> p.priority));
-        int currentTime = 0;
+        this.contextSwitchingTime = contextSwitchingTime;
+    }
+
+    public void Scheduler() {
+
+        // Sort by priority and then arrival time
+
+        Collections.sort(processes, Comparator.comparingInt((Process p) -> p.getArrivalTime())
+                .thenComparingInt(p -> p.getPriority()));
+
+        currentTime = 0;
         while (!processes.isEmpty() || !readyQueue.isEmpty()){
-            for (Process process : processes) {
-                if (currentTime >= process.arrivalTime) {
+            Iterator<Process> iterator = processes.iterator();
+            while (iterator.hasNext()) {
+                Process process = iterator.next();
+                if (currentTime >= process.getArrivalTime()) {
                     readyQueue.add(process);
+                    iterator.remove();
                 }
             }
             if (!readyQueue.isEmpty()) {
                 Process currentProcess = readyQueue.poll();
 
-                // Calculate waiting time, considering context switching
-                currentProcess.waitingTime = currentTime - currentProcess.arrivalTime + contextSwitchingTime;
-                currentTime += currentProcess.burstTime + contextSwitchTime;
-                currentProcess.turnaroundTime = currentProcess.waitingTime + currentProcess.burstTime;
+
+                currentTime += currentProcess.getBurstTime() + contextSwitchingTime;
+                currentProcess.setTurnaroundTime(currentTime - currentProcess.getArrivalTime());
+                currentProcess.setWaitingTime(currentProcess.getTurnaroundTime() - currentProcess.getBurstTime());
+                excutedprocesses.add(currentProcess);
+                displayResults(currentProcess);
             } else {
-                // If the ready queue is empty, increment time by context switching time
                 currentTime += 1;
             }
+
         }
-
     }
 
-
-    public void displayResults() {
-        System.out.println("Priority Scheduling:");
-        printResults(processes);
+    public void displayResults(Process currProcess) {
+        System.out.println("| Time -> " + currentTime + " | Process -> " + currProcess.getName() + " | Brust -> " + currProcess.getRemainingBurstTime() + " | Arrival -> " + currProcess.getArrivalTime() + " | Priority -> " + currProcess.getPriority());
+        System.out.println("-----------------------------------");
     }
 
-    private void printResults(List<Process> processes) {
-        // Sort by priority and then arrival time
+    public void printResults() {
         int totalWaitingTime = 0;
         int totalTurnaroundTime = 0;
 
         System.out.println("Process\tWaiting Time\tTurnaround Time");
-        for (Process process : processes) {
-            System.out.println(process.name + "\t" + process.waitingTime + "\t\t" + process.turnaroundTime);
-            totalWaitingTime += process.waitingTime;
-            totalTurnaroundTime += process.turnaroundTime;
+        for (Process p : excutedprocesses) {
+            System.out.println(p.getName() + "\t" + p.getWaitingTime() + "\t\t" + p.getTurnaroundTime());
+            totalWaitingTime += p.getWaitingTime();
+            totalTurnaroundTime += p.getTurnaroundTime();
         }
 
-        System.out.println("Average Waiting Time: " + (double) totalWaitingTime / processes.size());
-        System.out.println("Average Turnaround Time: " + (double) totalTurnaroundTime / processes.size());
+        System.out.println("Average Waiting Time: " + (double) totalWaitingTime / excutedprocesses.size());
+        System.out.println("Average Turnaround Time: " + (double) totalTurnaroundTime / excutedprocesses.size());
     }
 }
