@@ -22,75 +22,80 @@ package scheduling;
 //     }
 // }
 
-public class Process {
+package scheduling;
+
+public class Process implements Comparable<Process> {
     private String name;
-    private int burstTime;
     private int arrivalTime;
+    private int burstTime;
     private int remainingBurstTime;
-    private int waitingTime;
-    private int completionTime;
-    private int turnaroundTime;
-    private boolean isCompleted;
     private int priority;
-    private int quantum ;
-    int id;
-    public Process(String name, int burstTime, int arrivalTime,int priority,int quantum) {
+    private int waitingTime;
+    private int turnaroundTime;
+
+    public Process(String name, int arrivalTime, int burstTime, int priority) {
         this.name = name;
-        this.burstTime = burstTime;
         this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
         this.remainingBurstTime = burstTime;
-        this.isCompleted = false;
-        this.id = id;
+        this.priority = priority;
+        this.waitingTime = 0;
+        this.turnaroundTime = 0;
     }
     public String getName() {
         return name;
     }
-
     public int getArrivalTime() {
         return arrivalTime;
     }
-
     public int getBurstTime() {
         return burstTime;
     }
-
     public int getRemainingBurstTime() {
         return remainingBurstTime;
     }
-
-    public void setRemainingBurstTime(int remainingBurstTime) {
-        this.remainingBurstTime = remainingBurstTime;
+    public void decRemainingTime() {
+        remainingBurstTime--;
     }
-
+    public int getPriority() {
+        return priority;
+    }
     public int getWaitingTime() {
         return waitingTime;
     }
-
-    public void setWaitingTime(int waitingTime) {
-        this.waitingTime = waitingTime;
-    }
-
-    public int getCompletionTime() {
-        return completionTime;
-    }
-
-    public void setCompletionTime(int completionTime) {
-        this.completionTime = completionTime;
-    }
-
     public int getTurnaroundTime() {
         return turnaroundTime;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setArrivalTime(int arrivalTime) {
+        this.arrivalTime = arrivalTime;
+    }
+    public void setBurstTime(int burstTime) {
+        this.burstTime = burstTime;
+    }
+    public void setRemainingBurstTime(int remainingBurstTime) {
+        this.remainingBurstTime = remainingBurstTime;
+    }
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+    public void setWaitingTime(int waitingTime) {
+        this.waitingTime = waitingTime;
+    }
     public void setTurnaroundTime(int turnaroundTime) {
         this.turnaroundTime = turnaroundTime;
     }
 
-    public boolean isCompleted() {
-        return isCompleted;
-    }
-
-    public void setCompleted(boolean isCompleted) {
-        this.isCompleted = isCompleted;
+    @Override
+    public int compareTo(Process other) {
+        // Compare by priority first, then by arrival time if priorities are equal
+        if (this.priority != other.priority) {
+            return Integer.compare(this.priority, other.priority);
+        } else {
+            return Integer.compare(this.arrivalTime, other.arrivalTime);
+        }
     }
 }
