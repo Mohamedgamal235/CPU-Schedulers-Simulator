@@ -6,6 +6,7 @@ import java.lang.Math.* ;
 class FCAIScheduler {
     // name - burstTime - arrivalTime - priority - Quantum
     private List<Process> processes ;
+    private List<Process> outProcesses ;
     private double v1 ; // last arrival time of all processes/10
     private double v2 ; // max burst time of all processes/10
     private Deque<Process> readyQueue = new LinkedList<>() ;
@@ -19,6 +20,7 @@ class FCAIScheduler {
 
     public FCAIScheduler(List<Process> processes) {
         this.processes = new ArrayList<>(processes);
+        this.outProcesses = new ArrayList<>();
     }
 
     private double updateFCAIFactor(Process currProcess) {
@@ -43,7 +45,6 @@ class FCAIScheduler {
             p.setRemainingBurstTime(p.getBurstTime());
             double facor = Math.ceil(updateFCAIFactor(p)) ;
             p.setFcaiFactor(facor);
-            System.out.println(facor);
         }
 
         while (!processes.isEmpty() || !readyQueue.isEmpty()){
@@ -70,7 +71,6 @@ class FCAIScheduler {
                 remainTime -= runTime ;
 
                 currProcess.setRemainingBurstTime(remainTime);
-                currProcess.setBurstTime(remainTime);
 
                 double facor = Math.ceil(updateFCAIFactor(currProcess)) ;
                 currProcess.setFcaiFactor(facor);
@@ -89,7 +89,6 @@ class FCAIScheduler {
                 if (isPreempted && preempted != currProcess){
                     currProcess.setQuantum(currQuantum + unusedQuantum);
                     readyQueue.addLast(currProcess);
-                    currProcess = preempted;
 
                     // smallest factor
                     Process p = readyQueue.stream()
@@ -103,16 +102,32 @@ class FCAIScheduler {
                     continue;
                 }
 
+                if(currProcess.getRemainingBurstTime() <= 0){
+                    System.out.println("Process " + currProcess.getName() + " completed at " + currTime);
+                    currProcess.setTurnaroundTime(currTime - currProcess.getArrivalTime());
+                    currProcess.setWaitingTime(currProcess.getTurnaroundTime() - currProcess.getBurstTime());
+                    outProcesses.add(currProcess);
+                    continue;
+                }
+
+
                 while (unusedQuantum > 0 && remainTime > 0){
                     currTime++ ;
                     unusedQuantum-- ;
                     remainTime-- ;
                     currProcess.setRemainingBurstTime(remainTime);
-                    currProcess.setBurstTime(remainTime);
 
                     // update FCAI factor impoooorrttaannntt
                     facor = Math.ceil(updateFCAIFactor(currProcess)) ;
                     currProcess.setFcaiFactor(facor);
+
+                    if(currProcess.getRemainingBurstTime() <= 0){
+                        System.out.println("Process " + currProcess.getName() + " completed at " + currTime);
+                        currProcess.setTurnaroundTime(currTime - currProcess.getArrivalTime());
+                        currProcess.setWaitingTime(currProcess.getTurnaroundTime() - currProcess.getBurstTime());
+                        outProcesses.add(currProcess);
+                        break;
+                    }
 
                     display(currProcess);
 
@@ -135,11 +150,9 @@ class FCAIScheduler {
                         }
                     }
 
-
                     if (isPreempted && preempted != currProcess){
                         currProcess.setQuantum(currQuantum + unusedQuantum);
                         readyQueue.addLast(currProcess);
-                        currProcess = preempted;
 
                         Process p = readyQueue.stream()
                                 .min(Comparator.comparingDouble(Process::getFcaiFactor))
@@ -153,8 +166,13 @@ class FCAIScheduler {
                     }
 
                     // check is complete or not
-                    if(currProcess.getRemainingBurstTime() <= 0)
+                    if(currProcess.getRemainingBurstTime() <= 0){
                         System.out.println("Process " + currProcess.getName() + " completed at " + currTime);
+                        currProcess.setTurnaroundTime(currTime - currProcess.getArrivalTime());
+                        currProcess.setWaitingTime(currProcess.getTurnaroundTime() - currProcess.getBurstTime());
+                        outProcesses.add(currProcess);
+                        continue;
+                    }
                     else if (unusedQuantum == 0){
                         // quntam finish but process not complete
                         currProcess.setQuantum(currQuantum + 2);
@@ -171,8 +189,31 @@ class FCAIScheduler {
 
 
     public void display(Process currProcess){
-        System.out.println("| Time -> " + currTime + " | Process -> " + currProcess.getName() + " | Brust -> " + currProcess.getBurstTime() + " | Arrival -> " + currProcess.getArrivalTime() + " | Priority -> " + currProcess.getPriority() + " | Quantum -> " + currProcess.getQuantum() + " | Factor -> " + currProcess.getFcaiFactor());
+        System.out.println("| Time -> " + currTime + " | Process -> " + currProcess.getName() + " | Brust -> " + currProcess.getRemainingBurstTime() + " | Arrival -> " + currProcess.getArrivalTime() + " | Priority -> " + currProcess.getPriority() + " | Quantum -> " + currProcess.getQuantum() + " | Factor -> " + currProcess.getFcaiFactor());
         System.out.println("-----------------------------------");
     }
+
+    public void displayAvareg(){
+        System.out.println("=====================================");
+        System.out.println("=====================================");
+        System.out.println("=====================================");
+        double totalWaitingTime = 0 ;
+        double totalTurnaroundTime = 0 ;
+
+        Collections.sort(outProcesses , Comparator.comparing(Process::getName));
+
+        System.out.println("Process\tWaiting Time\tTurnaround Time");
+
+        for (Process process : outProcesses) {
+            System.out.println(process.getName() + "\t\t\t" + process.getWaitingTime() + "\t\t\t" + process.getTurnaroundTime());
+            totalWaitingTime += process.getWaitingTime();
+            totalTurnaroundTime += process.getTurnaroundTime();
+        }
+
+        System.out.println();
+        System.out.println("Average Waiting Time : " + totalWaitingTime / outProcesses.size());
+        System.out.println("Average Turnaround Time : " + totalTurnaroundTime / outProcesses.size());
+    }
+
 
 }
